@@ -1,14 +1,26 @@
+use std log
+
 const cache_dir = "crunch-cache"
+
+def dl-cached [
+	--file: path,
+	--url: string,
+] {
+	if ($file | path exists) {
+		log debug $"Cache entry for `($file)` already exists, skipping download"
+	} else {
+		log debug $"Downloading and caching `($file)` from <($url)>…"
+		mkdir ($file | path dirname)
+		curl -o $file -L $url
+	}
+	$file
+}
 
 export def "crunch dl-versions" [
 	...crates: string,
 ] {
-	# TODO: cache
 	$crates | each {|crate|
-		let file = $"($cache_dir)/versions/($crate).json"
-		mkdir ($file | path dirname)
-		curl -o $file -L $'https://index.crates.io/($crate | str substring 0..1)/($crate | str substring 2..3)/($crate)'
-		$file
+		dl-cached --file $"($cache_dir)/versions/($crate).json" --url $'https://index.crates.io/($crate | str substring 0..1)/($crate | str substring 2..3)/($crate)'
 	}
 }
 
@@ -24,12 +36,7 @@ export def "crunch dl-tarball" [
 	name: string,
 	version: string,
 ] {
-	# TODO: cache
-	let url = $'https://crates.io/api/v1/crates/($name)/($version)/download'
-	let file = $'($cache_dir)/packages/($name)-($version).crate'
-	mkdir ($file | path dirname)
-	curl -o $file -L $url
-	$file
+	dl-cached --file $'($cache_dir)/packages/($name)-($version).crate' --url $'https://crates.io/api/v1/crates/($name)/($version)/download'
 }
 
 export def main [] {
@@ -41,8 +48,14 @@ export def main [] {
 	}
 	let crate_version_commits = $crate_tarballs | insert commit {|crate|
 		let extracted_dir = $'($cache_dir)/packages-extracted'
-		ouch decompress --format tar.gz $crate.tarball --dir $extracted_dir
 		let dir = $'($extracted_dir)/($crate.name)-($crate.vers)'
+
+		if ($dir | path exists) {
+			log debug "Cache entry for `($dir)` existing, skipping archive extraction…"
+		} else {
+			log debug "Decompressing `($crate.tarball)` into `($dir)`…"
+			ouch decompress --format tar.gz $crate.tarball --dir $extracted_dir
+		}
 		let vcs_info = $'($dir)/.cargo_vcs_info.json'
 		try {
 			let vcs_info_json_path = ls $vcs_info | get name | first
