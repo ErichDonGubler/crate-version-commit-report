@@ -26,7 +26,7 @@ def dl-cached [
 	$file
 }
 
-export def "crunch dl-versions" [
+export def "dl-versions" [
 	...crates: string,
 ] {
 	$crates | each {|crate|
@@ -34,7 +34,7 @@ export def "crunch dl-versions" [
 	}
 }
 
-export def "crunch list-versions" [
+export def "list-versions" [
 	...files: path,
 ] {
 	$files | reduce --fold [] {|file, acc|
@@ -42,7 +42,7 @@ export def "crunch list-versions" [
 	}
 }
 
-export def "crunch dl-tarball" [
+export def "dl-tarball" [
 	name: string,
 	version: string,
 ] {
@@ -51,10 +51,10 @@ export def "crunch dl-tarball" [
 
 export def main [] {
 	let crates = [wgpu wgpu-hal wgpu-types wgpu-core d3d12 naga]
-	let version_index_files = crunch dl-versions ...$crates
-	let crate_version_table = crunch list-versions ...$version_index_files | select name vers
+	let version_index_files = dl-versions ...$crates
+	let crate_version_table = list-versions ...$version_index_files | select name vers
 	let crate_tarballs = $crate_version_table | insert tarball {|crate|
-		crunch dl-tarball $crate.name $crate.vers
+		dl-tarball $crate.name $crate.vers
 	}
 	let crate_version_commits = $crate_tarballs | insert commit {|crate|
 		let extracted_dir = $'($CACHE_DIR)/packages-extracted'
