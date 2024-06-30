@@ -102,3 +102,62 @@ export def "read-releases" [
 			$in | where name in $crates
 		}
 }
+
+# Tag a local Git repo with tags of the form `{crate}-v{version}`.
+export def "tag" [
+	...crates: string,
+
+	--repo-path: directory,
+	# The directory containing the Git repository to be tagged.
+
+	--releases-path: path = $RELEASES_JSON_PATH,
+	# Overrides the path to the releases database.
+
+	--remote: list<string> = ["origin"]
+	# The name of the configured Git remote(s) from which missing commits will be fetched.
+] {
+	let remotes = $remote
+	let releases_by_commit = read-releases --releases-path $releases_path ...$crates
+	enter
+	cd $repo_path
+	try {
+		for entry in $releases_by_commit {
+			let get_tag_name = {|release| $"($release.name)-v($release.vers)" }
+			try {
+				log debug $"checking if ($entry.commit) exists…"
+				git show $entry.commit -- | null
+				log debug $"commit ($entry.commit) exists, skipping fetch"
+			} catch {
+				log warning $"commit ($entry.commit) not found, attempting fetch from remote\(s\)…"
+				mut found = false
+				for remote in $remotes {
+					try {
+						git fetch $remote $entry.commit
+						$found = true
+						break
+					} catch {
+						log warning $'cannot find commit ($entry.commit) from remote ($remote)'
+					}
+				}
+				if not $found {
+					log error $"could not find commit ($entry.commit) among specified remote\(s\), skipping tag\(s\) ($entry.releases | each { do $get_tag_name $in })"
+					continue
+				}
+			}
+			for release in $entry.releases {
+				let tag_name = do $get_tag_name $release
+				let ref_exists = not (git tag --list $tag_name | lines | is-empty)
+				log debug $"tagging ($tag_name); exists already: ($ref_exists)"
+
+				if not $ref_exists {
+					try {
+						git tag $tag_name $entry.commit
+					} catch {
+						log error $"failed to tag commit ($entry.commit) with `($tag_name)`"
+					}
+				}
+			}
+		}
+	}
+	dexit
+}
