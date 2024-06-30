@@ -169,3 +169,49 @@ export def "tag" [
 		}
 	}
 }
+
+export def "wgpu" [
+	--repo-path: directory = "scratch/wgpu"
+] {
+	let crates = wgpu crate-members-to-publish --repo-path $repo_path | get name
+	let remotes = [
+		...("https://github.com/{cwfitzgerald,gfx-rs,kvark}/wgpu{,-rs}" | str expand)
+		...("https://github.com/{cwfitzgerald,gfx-rs,kvark}/naga" | str expand)
+	]
+
+	populate-cache ...$crates
+	tag ...$crates --repo-path $repo_path --remotes $remotes
+}
+
+export def "wgpu crate-members-to-publish" [
+	--repo-path: directory = "scratch/wgpu"
+] {
+	let cargo_metadata = (
+		cargo metadata --format-version 1
+			--manifest-path ($repo_path | path join 'Cargo.toml')
+	) | from json
+
+	let workspace_members = $cargo_metadata
+		| get workspace_members
+		| parse 'path+file://{abs_path}#{version_fragment}'
+		| update version_fragment {|entry|
+			parse --regex '(?:(?P<name>[a-zA-Z0-9-]+)@)?(?P<version>\d+\.\d+\.\d+)'
+				| first
+				| update name {
+					if ($in | is-empty) {
+						($entry.abs_path | path basename)
+					} else {
+						$in
+					}
+				}
+		}
+		| flatten version_fragment
+		| where name !~ '^deno'
+
+	let publishable = $cargo_metadata
+		| get packages
+		| where name in ($workspace_members | get name) and publish != []
+		| get name
+
+	$workspace_members | where name in $publishable
+}
