@@ -1,6 +1,7 @@
 use std log
 
 const CACHE_DIR = "crunch-cache"
+const RELEASES_JSON_PATH = ([$CACHE_DIR "releases.json"] | path join)
 
 def dl-cached [
 	--file: path,
@@ -49,7 +50,10 @@ export def "dl-tarball" [
 	dl-cached --file $'($CACHE_DIR)/packages/($name)-($version).crate' --url $'https://crates.io/api/v1/crates/($name)/($version)/download'
 }
 
-export def main [] {
+export def main [
+	--releases-path: path = $RELEASES_JSON_PATH,
+	# Overrides the path to the releases database.
+] {
 	let crates = [wgpu wgpu-hal wgpu-types wgpu-core d3d12 naga]
 	let version_index_files = dl-versions ...$crates
 	let crate_version_table = list-versions ...$version_index_files | select name vers
@@ -81,5 +85,5 @@ export def main [] {
 		| transpose
 		| rename commit releases
 		| update releases { reject commit }
-		| to json o> $'($cache_dir)/releases.json'
+		| save --force $releases_path
 }
