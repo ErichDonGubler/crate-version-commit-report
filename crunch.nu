@@ -11,7 +11,17 @@ def dl-cached [
 	} else {
 		log debug $"Downloading and caching `($file)` from <($url)>…"
 		mkdir ($file | path dirname)
-		curl -o $file -L $url
+		try {
+			http get $url o> $file
+		} catch {
+			error make {
+				msg: $"failed to request <($url)> via HTTP GET",
+				label: {
+					text: "failed to download this URL",
+					span: (metadata $url).span
+				}
+			}
+		}
 	}
 	$file
 }
