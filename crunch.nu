@@ -1,6 +1,6 @@
 use std log
 
-const cache_dir = "crunch-cache"
+const CACHE_DIR = "crunch-cache"
 
 def dl-cached [
 	--file: path,
@@ -30,7 +30,7 @@ export def "crunch dl-versions" [
 	...crates: string,
 ] {
 	$crates | each {|crate|
-		dl-cached --file $"($cache_dir)/versions/($crate).json" --url $'https://index.crates.io/($crate | str substring 0..1)/($crate | str substring 2..3)/($crate)'
+		dl-cached --file $"($CACHE_DIR)/versions/($crate).json" --url $'https://index.crates.io/($crate | str substring 0..1)/($crate | str substring 2..3)/($crate)'
 	}
 }
 
@@ -46,7 +46,7 @@ export def "crunch dl-tarball" [
 	name: string,
 	version: string,
 ] {
-	dl-cached --file $'($cache_dir)/packages/($name)-($version).crate' --url $'https://crates.io/api/v1/crates/($name)/($version)/download'
+	dl-cached --file $'($CACHE_DIR)/packages/($name)-($version).crate' --url $'https://crates.io/api/v1/crates/($name)/($version)/download'
 }
 
 export def main [] {
@@ -57,7 +57,7 @@ export def main [] {
 		crunch dl-tarball $crate.name $crate.vers
 	}
 	let crate_version_commits = $crate_tarballs | insert commit {|crate|
-		let extracted_dir = $'($cache_dir)/packages-extracted'
+		let extracted_dir = $'($CACHE_DIR)/packages-extracted'
 		let dir = $'($extracted_dir)/($crate.name)-($crate.vers)'
 
 		if ($dir | path exists) {
