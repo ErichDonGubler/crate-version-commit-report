@@ -161,3 +161,25 @@ export def "tag" [
 	}
 	dexit
 }
+
+export def "wgpu" [
+	--repo-path: directory = "scratch/wgpu"
+] {
+	let crates = [
+		d3d12
+		naga
+		naga-cli
+		wgpu
+		wgpu-core
+		wgpu-hal
+		wgpu-info
+		wgpu-types
+	]
+	let remotes = [
+		...("https://github.com/{cwfitzgerald,gfx-rs,kvark}/wgpu{,-rs}" | str expand)
+		...("https://github.com/{cwfitzgerald,gfx-rs,kvark}/naga" | str expand)
+	]
+
+	populate-cache ...$crates
+	tag ...$crates --repo-path $repo_path --remote $remotes
+}
