@@ -50,7 +50,7 @@ export def "dl-tarball" [
 	dl-cached --file $'($CACHE_DIR)/packages/($name)-($version).crate' --url $'https://crates.io/api/v1/crates/($name)/($version)/download'
 }
 
-export def main [
+export def "populate-cache" [
 	...crates: string,
 	--releases-path: path = $RELEASES_JSON_PATH,
 	# Overrides the path to the releases database.
