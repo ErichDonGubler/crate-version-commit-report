@@ -10,7 +10,7 @@ def dl-cached [
 	if ($file | path exists) {
 		log debug $"Cache entry for `($file)` already exists, skipping download"
 	} else {
-		log debug $"Downloading and caching `($file)` from <($url)>…"
+		log debug $"Populating `($file)` from <($url)>…"
 		mkdir ($file | path dirname)
 		try {
 			http get $url o> $file
