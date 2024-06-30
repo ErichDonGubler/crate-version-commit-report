@@ -87,3 +87,18 @@ export def "populate-cache" [
 		| update releases { reject commit }
 		| save --force $releases_path
 }
+
+export def "read-releases" [
+	--releases-path: path = $RELEASES_JSON_PATH,
+	# Overrides the path to the releases database.
+
+	...crates: string,
+] {
+	open $releases_path
+		| where {
+			$in.releases | any { $in.name in $crates }
+		}
+		| update releases {
+			$in | where name in $crates
+		}
+}
