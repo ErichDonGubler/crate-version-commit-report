@@ -131,7 +131,7 @@ export def "tag" [
 			let get_tag_name = {|release| $"($release.name)-v($release.vers)" }
 			try {
 				log debug $"checking if ($entry.commit) exists…"
-				git show $entry.commit -- | null
+				git cat-file commit $entry.commit
 				log debug $"commit ($entry.commit) exists, skipping fetch"
 			} catch {
 				log warning $"commit ($entry.commit) not found, attempting fetch from remote\(s\)…"
