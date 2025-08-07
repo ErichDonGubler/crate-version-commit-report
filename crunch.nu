@@ -155,10 +155,10 @@ export def "tag" [
 			}
 			for release in $entry.releases {
 				let tag_name = do $get_tag_name $release
-				let ref_exists = not (git tag --list $tag_name | lines | is-empty)
-				log debug $"tagging ($tag_name); exists already: ($ref_exists)"
+				let tag_missing = git tag --list $tag_name | lines | is-empty
+				log debug $"tagging ($tag_name); exists already: (not $tag_missing)"
 
-				if not $ref_exists {
+				if $tag_missing {
 					try {
 						git tag $tag_name $entry.commit
 					} catch {
