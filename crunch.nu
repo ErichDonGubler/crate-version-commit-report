@@ -31,6 +31,7 @@ export def "dl-versions" [
 	...crates: string,
 ] {
 	$crates | each {|crate|
+		log debug $"downloading version index for `($crate)`"
 		(
 			dl-cached
 				--file $"($CACHE_DIR)/versions/($crate).json"
@@ -65,7 +66,9 @@ export def "populate-cache" [
 
 	let version_index_files = dl-versions ...$crates
 	let crate_version_table = list-versions ...$version_index_files | select name vers
+	log info $"caching ($crate_version_table | get name | uniq | length) crates with ($crate_version_table | length) versions"
 	let crate_tarballs = $crate_version_table | insert tarball {|crate|
+		log debug $"downloading tarballs for versions of `($crate.name)`"
 		dl-tarball $crate.name $crate.vers
 	}
 	let crate_version_commits = $crate_tarballs | insert commit {|crate|
