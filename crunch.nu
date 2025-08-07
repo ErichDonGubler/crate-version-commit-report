@@ -55,6 +55,10 @@ export def "populate-cache" [
 	--releases-path: path = $RELEASES_JSON_PATH,
 	# Overrides the path to the releases database.
 ] {
+	if (which ouch | is-empty) {
+		print --stderr "fatal: `ouch` not found, bailing"
+	}
+
 	let version_index_files = dl-versions ...$crates
 	let crate_version_table = list-versions ...$version_index_files | select name vers
 	let crate_tarballs = $crate_version_table | insert tarball {|crate|
