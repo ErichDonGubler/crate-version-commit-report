@@ -1,7 +1,7 @@
 use std log
 
 const CACHE_DIR = path self "./crunch-cache/"
-const RELEASES_JSON_PATH = ([$CACHE_DIR "releases.json"] | path join)
+const RELEASES_JSON_PATH = [$CACHE_DIR "releases.json"] | path join
 
 def dl-cached [
 	--file: path,
