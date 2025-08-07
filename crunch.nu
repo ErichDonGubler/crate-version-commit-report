@@ -121,10 +121,9 @@ export def "tag" [
 	--releases-path: path = $RELEASES_JSON_PATH,
 	# Overrides the path to the releases database.
 
-	--remote: list<string> = ["origin"]
+	--remotes: list<string> = ["origin"]
 	# The name of the configured Git remote(s) from which missing commits will be fetched.
 ] {
-	let remotes = $remote
 	let releases_by_commit = read-releases --releases-path $releases_path ...$crates
 	cd $repo_path
 	try {
