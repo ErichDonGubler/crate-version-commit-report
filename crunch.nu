@@ -31,7 +31,11 @@ export def "dl-versions" [
 	...crates: string,
 ] {
 	$crates | each {|crate|
-		dl-cached --file $"($CACHE_DIR)/versions/($crate).json" --url $'https://index.crates.io/($crate | str substring 0..1)/($crate | str substring 2..3)/($crate)'
+		(
+			dl-cached
+				--file $"($CACHE_DIR)/versions/($crate).json"
+				--url $'https://index.crates.io/($crate | str substring 0..1)/($crate | str substring 2..3)/($crate)'
+		)
 	}
 }
 
