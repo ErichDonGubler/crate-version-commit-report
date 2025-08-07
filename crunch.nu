@@ -126,7 +126,6 @@ export def "tag" [
 ] {
 	let remotes = $remote
 	let releases_by_commit = read-releases --releases-path $releases_path ...$crates
-	enter
 	cd $repo_path
 	try {
 		for entry in $releases_by_commit {
@@ -167,5 +166,4 @@ export def "tag" [
 			}
 		}
 	}
-	dexit
 }
