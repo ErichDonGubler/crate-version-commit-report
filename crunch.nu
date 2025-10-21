@@ -66,7 +66,7 @@ export def "populate-cache" [
 
 	let version_index_files = dl-versions ...$crates
 	let crate_version_table = list-versions ...$version_index_files | select name vers
-	log info $"caching ($crate_version_table | get name | uniq | length) crates with ($crate_version_table | length) versions"
+	log info $"caching ($crate_version_table | get name | uniq | length) crates with ($crate_version_table | length) versions…"
 	let crate_tarballs = $crate_version_table | insert tarball {|crate|
 		log debug $"downloading tarballs for versions of `($crate.name)`"
 		dl-tarball $crate.name $crate.vers
@@ -76,9 +76,9 @@ export def "populate-cache" [
 		let dir = $'($extracted_dir)/($crate.name)-($crate.vers)'
 
 		if ($dir | path exists) {
-			log debug "Cache entry for `($dir)` existing, skipping archive extraction…"
+			log debug $"Cache entry exists at `($dir)`, skipping archive extraction…"
 		} else {
-			log debug "Decompressing `($crate.tarball)` into `($dir)`…"
+			log debug $"Decompressing `($crate.tarball)` into `($dir)`…"
 			ouch decompress --format tar.gz $crate.tarball --dir $extracted_dir
 		}
 		let vcs_info = $'($dir)/.cargo_vcs_info.json'
